@@ -1,0 +1,20 @@
+# exclude everything
+data2/*
+
+# exception to the rule
+!data2/test/imgs/.gitkeep 
+!data2/test/masks/.gitkeep 
+!data2/train/imgs/.keep 
+!data2/train/masks/.keep 
+
+data/
+logs/fit/*
+!logs/fit/.gitkeep
+
+training_checkpoints/*
+training_checkpoints_update_loss/*
+!training_checkpoints_update_loss/.gitkeep
+
+__pycache__/*
+.ipynb_checkpoints/*
+.vscode/*
