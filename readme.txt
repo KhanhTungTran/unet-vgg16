@@ -4,6 +4,8 @@ I. MODEL DETECTION
 python watermark_dataset.py -w data/images/watermarks -i data/images/VOC2012/JPEGImages \
 -oo data/images/original -oi data/images/train -ol data/labels/train
 
+python create_dataset.py -w ../yolov5/data/images/watermarks -i ../yolov5/data/images/VOC2012/JPEGImages -oo 
+data/train/masks -oi data/train/imgs -n 30000 -s 12349
 
 2. Train model detection:
 

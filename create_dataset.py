@@ -9,7 +9,6 @@ import os
 from random import seed
 from random import randint, uniform
 from math import ceil, floor
-# seed(243795)
 
 # construct the argument parse and parse the arguments
 ap = argparse.ArgumentParser()
@@ -107,10 +106,18 @@ for watermark_path in list(paths.list_images(args["watermark"]))[::-1][2:3]:
 		cv2.addWeighted(overlay, alpha, output, 1-alpha, 0, output)
 
 		# NOTE: write the output image to disk
+		x = [0]*4
+		x[1] = y_center - floor(wH/2)
+		x[3] = y_center + ceil(wH/2)
+		x[0] = x_center - floor(wW/2)
+		x[2] = x_center + ceil(wW/2)
+		c1 = max(int(min(x[0], x[2])-abs(x[2]-x[0])*0.25), 0), max(int(min(x[1], x[3])-abs(x[3]-x[1])*0.25), 0)
+		c2 = int(x[2]), min(int(max(x[1], x[3])+abs(x[3]-x[1])*0.25), image.shape[0])
+
 		image_file_name = format(count, '07d') + ".png"
 		label_file_name = format(count, '07d') + ".txt"
-		cv2.imwrite(os.path.sep.join((args["output_original"], image_file_name)), image[y_center - floor(wH/2):y_center + ceil(wH/2), x_center - floor(wW/2):x_center + ceil(wW/2)])
+		cv2.imwrite(os.path.sep.join((args["output_original"], image_file_name)), image[c1[1]:c2[1], c1[0]:c2[0]])
 		p = os.path.sep.join((args["output_image"], image_file_name))
-		cv2.imwrite(p, output[y_center - floor(wH/2):y_center + ceil(wH/2), x_center - floor(wW/2):x_center + ceil(wW/2)])
+		cv2.imwrite(p, output[c1[1]:c2[1], c1[0]:c2[0]])
 
 		count += 1
