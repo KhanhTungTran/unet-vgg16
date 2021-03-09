@@ -9,7 +9,7 @@ import os
 from random import seed
 from random import randint, uniform
 from math import ceil, floor
-seed(243795)
+# seed(243795)
 
 # construct the argument parse and parse the arguments
 ap = argparse.ArgumentParser()
@@ -21,13 +21,15 @@ ap.add_argument('-oo', '--output_original', required=True,
     help="path to the original image output directory")
 ap.add_argument('-oi', '--output_image', required=True,
     help="path to the image output directory")
-ap.add_argument('-ol', '--output_label', required=True,
-    help="path to the label output directory")
 ap.add_argument("-n", "--number", type=int, default=5000,
 	help="number of images to generate")	
 ap.add_argument("-c", "--correct", type=int, default=1,
 	help="flag used to handle if bug is displayed or not")
+ap.add_argument("-s", "--seed", type=int, default=1,
+	help="seed used to randomize the images")
 args = vars(ap.parse_args())
+
+seed(args["seed"])
 
 count = 1
 # TODO: loop through watermarks in watermarks directory, split for training (0.8) and testing (0.2)
@@ -104,23 +106,11 @@ for watermark_path in list(paths.list_images(args["watermark"]))[::-1][2:3]:
 		alpha = uniform(0.15, 0.6)
 		cv2.addWeighted(overlay, alpha, output, 1-alpha, 0, output)
 
-		# not_zero_mask = watermark[:, :, 0] != 0
-		# not_255_mask =  watermark[:, :, 0] != 255
-		# watermark[not_zero_mask] = [125, 125, 125, 26]
-		# watermark[not_255_mask] = [0, 0, 0, 26]
-		# overlay[y_center - floor(wH/2):y_center + ceil(wH/2), x_center - floor(wW/2):x_center + ceil(wW/2)] = watermark
-		# cv2.addWeighted(overlay, 0.5, output, 1, 0, output)
-
 		# NOTE: write the output image to disk
 		image_file_name = format(count, '07d') + ".png"
 		label_file_name = format(count, '07d') + ".txt"
-		cv2.imwrite(os.path.sep.join((args["output_original"], image_file_name)), image)
+		cv2.imwrite(os.path.sep.join((args["output_original"], image_file_name)), image[y_center - floor(wH/2):y_center + ceil(wH/2), x_center - floor(wW/2):x_center + ceil(wW/2)])
 		p = os.path.sep.join((args["output_image"], image_file_name))
-		cv2.imwrite(p, output)
+		cv2.imwrite(p, output[y_center - floor(wH/2):y_center + ceil(wH/2), x_center - floor(wW/2):x_center + ceil(wW/2)])
 
-		# NOTE: write label to the label directory
-		label = " ".join(['0', format(x_center/w, '.6f'), format(y_center/h, '.6f'), format(wW/w, '.6f'), format(wH/h, '.6f')])
-		f = open(os.path.sep.join((args["output_label"], label_file_name)), 'w')
-		f.write(label)
-		f.close()
 		count += 1
