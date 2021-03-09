@@ -28,7 +28,7 @@ if gpus:
 # Hyperparameters:
 BUFFER_SIZE = 400
 BATCH_SIZE = 1
-EPOCHS = 100
+EPOCHS = 50
 
 INPUT_PATH = 'data2/train/imgs/'
 MASK_PATH = 'data2/train/masks/'
@@ -70,7 +70,7 @@ def generator_loss(gen_output, target):
     return total_gen_loss, perceptual_loss, l1_loss
 
 # Checkpoint for saving model:
-checkpoint_dir = './training_checkpoints_update_loss'
+checkpoint_dir = './training_checkpoints_update_unet'
 checkpoint_prefix = os.path.join(checkpoint_dir, "ckpt")
 checkpoint = tf.train.Checkpoint(generator_optimizer=generator_optimizer,
                                  generator=generator)
@@ -125,7 +125,6 @@ def fit(train_ds, epochs, test_ds):
 checkpoint.restore(tf.train.latest_checkpoint(checkpoint_dir))
 
 fit(train_dataset, EPOCHS, test_dataset)
-
 
 for inp, tar in train_dataset.take(5):
     generate_images(generator, inp, tar)
