@@ -9,6 +9,7 @@ import os
 from random import seed
 from random import randint, uniform
 from math import ceil, floor
+from tqdm import tqdm
 
 # construct the argument parse and parse the arguments
 ap = argparse.ArgumentParser()
@@ -31,17 +32,18 @@ args = vars(ap.parse_args())
 seed(args["seed"])
 
 count = 1
-# TODO: loop through watermarks in watermarks directory, split for training (0.8) and testing (0.2)
-for watermark_path in list(paths.list_images(args["watermark"]))[::-1][2:3]:
+list_watermarks = list(paths.list_images(args["watermark"]))
+list_watermarks.sort()
+for watermark_path in list_watermarks:
 	print(watermark_path)
 	# load the watermark image, making sure we retain the 4th channel
 	# which contains the alpha transparency
 	watermark = cv2.imread(watermark_path, cv2.IMREAD_UNCHANGED)
 	(wH, wW) = watermark.shape[:2]
-	# print(watermark)
-	cv2.imshow("watermark", watermark)
-	cv2.waitKey(0)
-	cv2.destroyAllWindows()
+	print(watermark.shape)
+	# cv2.imshow("watermark", watermark)
+	# cv2.waitKey(0)
+	# cv2.destroyAllWindows()
 
 	if args["correct"] > 0:
 		(B, G, R, A) = cv2.split(watermark)
@@ -57,11 +59,11 @@ for watermark_path in list(paths.list_images(args["watermark"]))[::-1][2:3]:
 	# not_255_mask =  watermark[:, :, 0] != 255
 	# watermark[not_zero_mask] = [100, 100, 100, 26]
 	# watermark[not_255_mask] = [200, 200, 200, 26]
-	watermark[:, :, 3] = 255
+	# watermark[:, :, 3] = 255
 
-	cv2.imshow("watermark", watermark)
-	cv2.waitKey(0)
-	cv2.destroyAllWindows()
+	# cv2.imshow("watermark", watermark)
+	# cv2.waitKey(0)
+	# cv2.destroyAllWindows()
 	orig_watermark = watermark
 	# cv2.imshow("watermark", watermark)
 	# cv2.waitKey(0)
@@ -69,7 +71,7 @@ for watermark_path in list(paths.list_images(args["watermark"]))[::-1][2:3]:
 	# NOTE: random input images
 	list_images_path = [format(randint(1, 17125), '07d') + '.jpg' for _ in range(args["number"])]
 	# loop over the input images
-	for image_path in list_images_path:
+	for image_path in tqdm(list_images_path):
 		# print(image_path)
 		# load the input image, then add an extra dimension to the
 		# image (i.e., the alpha transparency)
@@ -80,7 +82,8 @@ for watermark_path in list(paths.list_images(args["watermark"]))[::-1][2:3]:
 		# image, (using an extra dimension for the alpha transparency),
 		# then add the watermark to the overlay in the bottom-right
 		# corner
-		overlay = image.copy()
+		# overlay = image.copy()
+		overlay = np.zeros((h, w, 4), dtype="uint8")
 
 		# NOTE: random size of watermark and random location
 		new_width = randint(min(int(w*3/5), 150), max(int(w*3/5), 150))
@@ -102,8 +105,8 @@ for watermark_path in list(paths.list_images(args["watermark"]))[::-1][2:3]:
 		output = image.copy()
 
 		# NOTE: Random alpha
-		alpha = uniform(0.15, 0.6)
-		cv2.addWeighted(overlay, alpha, output, 1-alpha, 0, output)
+		alpha = uniform(0.5, 0.75)
+		cv2.addWeighted(overlay, alpha, output, 1, 0, output)
 
 		# NOTE: write the output image to disk
 		x = [0]*4
@@ -112,7 +115,7 @@ for watermark_path in list(paths.list_images(args["watermark"]))[::-1][2:3]:
 		x[0] = x_center - floor(wW/2)
 		x[2] = x_center + ceil(wW/2)
 		c1 = max(int(min(x[0], x[2])-abs(x[2]-x[0])*0.25), 0), max(int(min(x[1], x[3])-abs(x[3]-x[1])*0.25), 0)
-		c2 = int(x[2]), min(int(max(x[1], x[3])+abs(x[3]-x[1])*0.25), image.shape[0])
+		c2 = min(int(max(x[0], x[2])+abs(x[2]-x[0])*0.25), image.shape[1]), min(int(max(x[1], x[3])+abs(x[3]-x[1])*0.25), image.shape[0])
 
 		image_file_name = format(count, '07d') + ".png"
 		label_file_name = format(count, '07d') + ".txt"
